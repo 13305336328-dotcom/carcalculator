@@ -75,6 +75,9 @@ input,select{width:100%;padding:14px;border:none;border-radius:14px;background:v
 
 <button class="btn calc" onclick="calc()">计算佣金</button>
 <button class="btn copy" onclick="copyResult()">复制结果</button>
+  <button class="btn copy" onclick="generateQuote()">
+生成报价
+  </button>
 
 <div class="card result" id="resultCard">
 
@@ -156,6 +159,42 @@ copyText=`车辆类型：${type==='fuel'?'燃油车':'新能源车'}
 }
 
 function copyResult(){
+function generateQuote(){
+
+const type=document.getElementById('type').value;
+
+const b=Number(document.getElementById('business').value)||0;
+const c=Number(document.getElementById('compulsory').value)||0;
+const p=Number(document.getElementById('passenger').value)||0;
+
+const pr=Number(document.getElementById('passengerRate').value)||0;
+const er=Number(document.getElementById('extraRate').value)||0;
+
+const bc=(type==='fuel')
+? b/1.06*0.09
+: b/1.06*0.02;
+
+const cc=c/1.06*0.04;
+
+const pc=p/1.06*pr/100;
+
+const ec=b/1.06*er/100*0.96;
+
+const follow=bc+cc+pc;
+
+const total=follow+ec;
+
+const text=
+`跟单：${Math.floor(follow)}元
+
+后补：${Math.floor(ec)}元
+
+合计：${Math.floor(total)}元`;
+
+navigator.clipboard.writeText(text);
+
+alert('报价已复制');
+}
 if(!copyText){
 alert('请先计算');
 return;
