@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>保险佣金计算器</title>
+<style>
+:root{--bg:#f2f2f7;--card:#fff;--text:#1c1c1e;--sub:#8e8e93;--blue:#007aff;--green:#34c759;--border:#e5e5ea}
+@media (prefers-color-scheme:dark){
+:root{--bg:#000;--card:#1c1c1e;--text:#fff;--sub:#98989d;--border:#2c2c2e}
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;background:var(--bg);color:var(--text);padding:20px}
+.container{max-width:720px;margin:auto}
+.header{background:linear-gradient(135deg,#007aff,#5ac8fa);color:#fff;padding:28px;border-radius:28px;margin-bottom:18px}
+.header h1{font-size:30px;margin-bottom:8px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:20px;margin-bottom:16px}
+.label{font-size:14px;color:var(--sub);margin-bottom:8px}
+input,select{width:100%;padding:14px;border:none;border-radius:14px;background:var(--bg);color:var(--text);font-size:18px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{width:100%;padding:16px;border:none;border-radius:18px;color:#fff;font-size:18px;margin-top:12px;cursor:pointer}
+.calc{background:var(--blue)}
+.copy{background:var(--green)}
+.result{display:none}
+.result.show{display:block}
+.total{text-align:center;padding-bottom:15px}
+.money{font-size:50px;font-weight:700}
+.item{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.footer{text-align:center;color:var(--sub);margin-top:25px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+<h1>🚗 保险佣金计算器</h1>
+<p>燃油车 / 新能源车佣金快速测算</p>
+</div>
+
+<div class="card">
+<div class="label">车辆类型</div>
+<select id="type">
+<option value="fuel">燃油车</option>
+<option value="ev">新能源车</option>
+</select>
+</div>
+
+<div class="card">
+<div class="label">商业险保费</div>
+<input id="business" type="number" placeholder="请输入商业险保费">
+
+<div style="height:12px"></div>
+
+<div class="label">交强险保费</div>
+<input id="compulsory" type="number" placeholder="请输入交强险保费">
+
+<div style="height:12px"></div>
+
+<div class="label">驾乘险保费</div>
+<input id="passenger" type="number" placeholder="请输入驾乘险保费">
+</div>
+
+<div class="card">
+<div class="row">
+<div>
+<div class="label">驾乘跟单点数(%)</div>
+<input id="passengerRate" type="number" value="26">
+</div>
+<div>
+<div class="label">商业险后补点数(%)</div>
+<input id="extraRate" type="number" value="3">
+</div>
+</div>
+</div>
+
+<button class="btn calc" onclick="calc()">计算佣金</button>
+<button class="btn copy" onclick="copyResult()">复制结果</button>
+  <button class="btn copy" onclick="generateQuote()">
+生成报价
+  </button>
+
+<div class="card result" id="resultCard">
+
+<div class="total">
+<div class="label">预计总收入</div>
+<div class="money" id="allTotal">¥0.00</div>
+</div>
+
+<div class="item"><span>商业险跟单</span><span id="businessCommission">¥0.00</span></div>
+<div class="item"><span>交强险跟单</span><span id="compulsoryCommission">¥0.00</span></div>
+<div class="item"><span>驾乘险跟单</span><span id="passengerCommission">¥0.00</span></div>
+<div class="item"><span>商业险后补</span><span id="extraCommission">¥0.00</span></div>
+<div class="item"><span>跟单合计</span><span id="followTotal">¥0.00</span></div>
+
+</div>
+
+<div class="footer">
+<div><strong>Insurance Commission Calculator</strong></div>
+<div>Designed & Developed by TorinSun</div>
+</div>
+
+</div>
+
+<script>
+let copyText='';
+const money=v=>Number(v).toFixed(2);
+
+function calc(){
+
+const type=document.getElementById('type').value;
+
+const business=Number(document.getElementById('business').value)||0;
+const compulsory=Number(document.getElementById('compulsory').value)||0;
+const passenger=Number(document.getElementById('passenger').value)||0;
+
+const passengerRate=Number(document.getElementById('passengerRate').value)||0;
+const extraRate=Number(document.getElementById('extraRate').value)||0;
+
+const businessCommission=
+type==='fuel'
+? business/1.06*0.09
+: business/1.06*0.02;
+
+const compulsoryCommission=compulsory/1.06*0.04;
+
+const passengerCommission=
+passenger/1.06*passengerRate/100;
+
+const extraCommission=
+business/1.06*extraRate/100*0.96;
+
+const followTotal=
+businessCommission+
+compulsoryCommission+
+passengerCommission;
+
+const allTotal=
+followTotal+extraCommission;
+
+document.getElementById('resultCard').classList.add('show');
+
+document.getElementById('businessCommission').innerHTML='¥'+money(businessCommission);
+document.getElementById('compulsoryCommission').innerHTML='¥'+money(compulsoryCommission);
+document.getElementById('passengerCommission').innerHTML='¥'+money(passengerCommission);
+document.getElementById('extraCommission').innerHTML='¥'+money(extraCommission);
+document.getElementById('followTotal').innerHTML='¥'+money(followTotal);
+document.getElementById('allTotal').innerHTML='¥'+money(allTotal);
+
+copyText=`车辆类型：${type==='fuel'?'燃油车':'新能源车'}
+
+商业险跟单：${money(businessCommission)}
+交强险跟单：${money(compulsoryCommission)}
+驾乘险跟单：${money(passengerCommission)}
+商业险后补：${money(extraCommission)}
+
+跟单合计：${money(followTotal)}
+
+总收入：${money(allTotal)}`;
+}
+
+function copyResult(){
+
+const type=document.getElementById('type').value;
+
+const b=Number(document.getElementById('business').value)||0;
+const c=Number(document.getElementById('compulsory').value)||0;
+const p=Number(document.getElementById('passenger').value)||0;
+
+const pr=Number(document.getElementById('passengerRate').value)||0;
+const er=Number(document.getElementById('extraRate').value)||0;
+
+const bc=(type==='fuel')
+? b/1.06*0.09
+: b/1.06*0.02;
+
+const cc=c/1.06*0.04;
+
+const pc=p/1.06*pr/100;
+
+const ec=b/1.06*er/100*0.96;
+
+const follow=bc+cc+pc;
+
+const total=follow+ec;
+
+const text=
+`跟单：${Math.floor(follow)}元
+
+后补：${Math.floor(ec)}元
+
+合计：${Math.floor(total)}元`;
+
+navigator.clipboard.writeText(text);
+
+alert('报价已复制');
+}
+if(!copyText){
+alert('请先计算');
+return;
+}
+navigator.clipboard.writeText(copyText);
+alert('已复制到剪贴板');
+}
+
+
+function generateQuote(){
+
+const type=document.getElementById('type').value;
+
+const b=Number(document.getElementById('business').value)||0;
+const c=Number(document.getElementById('compulsory').value)||0;
+const p=Number(document.getElementById('passenger').value)||0;
+
+const pr=Number(document.getElementById('passengerRate').value)||0;
+const er=Number(document.getElementById('extraRate').value)||0;
+
+const bc=(type==='fuel')
+? b/1.06*0.09
+: b/1.06*0.02;
+
+const cc=c/1.06*0.04;
+
+const pc=p/1.06*pr/100;
+
+const ec=b/1.06*er/100*0.96;
+
+const follow=bc+cc+pc;
+
+const total=follow+ec;
+
+const text=
+`跟单：${Math.floor(follow)}元
+
+后补：${Math.floor(ec)}元
+
+合计：${Math.floor(total)}元`;
+
+navigator.clipboard.writeText(text);
+
+alert('报价已复制');
+}
+
+</script>
+</body>
+</html>
